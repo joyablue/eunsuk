@@ -450,14 +450,20 @@ function setupComp(key){
 setupComp('story');setupComp('truthch');
 
 
-// 개발자 도구 단축키와 우클릭 막기 (완전한 차단은 아님)
-document.addEventListener('contextmenu',function(e){e.preventDefault()});
-document.addEventListener('keydown',function(e){
-  var k=(e.key||'').toLowerCase(),m=e.ctrlKey||e.metaKey;
-  if(e.key==='F12'||(m&&e.shiftKey&&(k==='i'||k==='j'||k==='c'))||(m&&k==='u')||(e.metaKey&&e.altKey&&(k==='i'||k==='j'||k==='c'||k==='u'))){
-    e.preventDefault();e.stopPropagation();
-  }
-},true);
+// 개발자 도구 단축키와 우클릭 막기 (브라우저 공통, 완전한 차단은 아님)
+function blockKey(e){
+  var k=(e.key||'').toLowerCase(),c=e.keyCode||e.which,m=e.ctrlKey||e.metaKey;
+  var dev=(e.key==='F12'||c===123)
+    ||(c>=118&&c<=121&&e.shiftKey)                       // 파이어폭스 Shift+F5~F8 도구
+    ||(m&&e.shiftKey&&'ijcknems'.indexOf(k)>-1&&k.length===1) // 크롬·엣지·파이어폭스 Ctrl+Shift+I/J/C/K/N/E/M/S
+    ||(m&&k==='u')                                         // 소스 보기
+    ||(m&&e.altKey&&'ijcue'.indexOf(k)>-1&&k.length===1)   // 사파리·맥 Cmd+Option+I/J/C/U/E
+    ||(m&&k==='s');                                        // 페이지 저장
+  if(dev){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();return false}
+}
+['keydown','keyup','keypress'].forEach(function(t){window.addEventListener(t,blockKey,true);document.addEventListener(t,blockKey,true)});
+document.addEventListener('contextmenu',function(e){e.preventDefault()},true);
+document.addEventListener('selectstart',function(e){var t=e.target;if(t&&t.nodeType===1&&t.closest&&t.closest('.pin'))e.preventDefault()});
 document.addEventListener('dragstart',function(e){if(e.target&&e.target.tagName==='IMG')e.preventDefault()});
 show('home');
 apply('cover',false);
